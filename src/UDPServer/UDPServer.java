@@ -13,14 +13,14 @@ import java.net.*;
 
 public class UDPServer {
     private static final int PIECES_OF_FILE_SIZE = 1024 * 32;
-    private static String defaultDir = "E:\\Documents\\bach khoa\\CSNM\\fileDemo\\Server\\";
+    private static String defaultDir = "D:\\Bach Khoa\\CSNM\\FIles Demo\\Server\\";
     private DatagramSocket serverSocket;
     private final int port = 6677;
     static Gui frame;
 
     public static void main(String[] args) {
         final JFileChooser fileDialog = new JFileChooser();
-        fileDialog.setCurrentDirectory(new File("E:\\Documents\\bach khoa\\CSNM\\fileDemo"));
+        fileDialog.setCurrentDirectory(new File(defaultDir));
         fileDialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         frame = new Gui();
         frame.setVisible(true);

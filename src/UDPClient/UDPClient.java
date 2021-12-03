@@ -18,27 +18,44 @@ public class UDPClient {
     private final int serverPort = 6677;
     private final String serverHost = "localhost";
     static Gui frame;
+    static String defaultDir = "D:\\Bach Khoa\\CSNM\\FIles Demo\\Client\\hello.txt";
 
     public static void main(String[] args) {
         final JFileChooser fileDialog = new JFileChooser();
-        fileDialog.setCurrentDirectory(new File("E:\\Documents\\bach khoa\\CSNM\\fileDemo\\Client"));
+        fileDialog.setCurrentDirectory(new File(defaultDir));
         frame = new Gui();
         frame.setVisible(true);
+        frame.filePathTextField.setText(defaultDir);
         frame.showFileDialogButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int returnVal = fileDialog.showOpenDialog(frame);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     File file = fileDialog.getSelectedFile();
-                    updateUI(file);
-                    UDPClient udpClient = new UDPClient();
-                    udpClient.connectServer();
-                    udpClient.sendFile(file);
+                    frame.filePathTextField.setText(file.getPath());
+                    updateInfoUI(file);
+//                    UDPClient udpClient = new UDPClient();
+//                    udpClient.connectServer();
+//                    udpClient.sendFile(file);
                 } else {
                     frame.fileNameLabel.setText("Open command cancelled by user.");
                     frame.filePathLabel.setText("");
                     frame.fileSizeLabel.setText("");
                 }
+            }
+        });
+        frame.transferFileButton.addActionListener(e -> {
+            if (!frame.filePathTextField.getText().isEmpty()) {
+                UDPClient udpClient = new UDPClient();
+                udpClient.connectServer();
+                udpClient.sendFile(new File(frame.filePathTextField.getText()));
+            } else {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Bạn chưa chọn file",
+                        "Ops",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
         });
     }
@@ -85,8 +102,9 @@ public class UDPClient {
                     fileBytes[count++] = bytePart;
                     bytePart = new byte[PIECES_OF_FILE_SIZE];
                 }
-                frame.progressBar.setValue(0);
-                frame.sendingInfo.setText("hello");
+//                frame.progressBar.setValue(0);
+//                frame.sendingInfo.setText("hello");
+                updateProgressBarUI(0, 0);
                 waitMillisecond(1000);
                 // Gui du lieu cua file theo tung goi
                 for (int i = 0; i < (count - 1); i++) {
@@ -95,14 +113,15 @@ public class UDPClient {
                             InetAddress.getByName(serverHost), serverPort
                     );
                     clientSocket.send(sendPacket);
-                    int sendingPercent = (int) ((i + 1) * (100.0 / fileInfo.getPiecesOfFile()));
-                    frame.progressBar.setValue(sendingPercent);
-                    frame.sendingInfo.setText(
-                            sendingPercent
-                                    + "%" + "  |  "
-                                    + (i + 1) * PIECES_OF_FILE_SIZE
-                                    + " / " + fileInfo.getFileSize() + "Kb"
-                    );
+                    updateProgressBarUI((i + 1) * PIECES_OF_FILE_SIZE, fileInfo.getFileSize());
+//                    int sendingPercent = (int) ((i + 1) * (100.0 / fileInfo.getPiecesOfFile()));
+//                    frame.progressBar.setValue(sendingPercent);
+//                    frame.sendingInfo.setText(
+//                            sendingPercent
+//                                    + "%" + "  |  "
+//                                    + (i + 1) * PIECES_OF_FILE_SIZE
+//                                    + " / " + fileInfo.getFileSize() + "Kb"
+//                    );
                     System.out.println("Sending file... " + i);
                     waitMillisecond(180);
                 }
@@ -113,10 +132,11 @@ public class UDPClient {
                 );
                 clientSocket.send(sendPacket);
                 waitMillisecond(40);
-                frame.progressBar.setValue(100);
-                frame.sendingInfo.setText(
-                        "100%" + "  |  " + fileInfo.getFileSize() + " / " + fileInfo.getFileSize() + "Kb"
-                );
+//                frame.progressBar.setValue(100);
+//                frame.sendingInfo.setText(
+//                        "100%" + "  |  " + fileInfo.getFileSize() + " / " + fileInfo.getFileSize() + "Kb"
+//                );
+                updateProgressBarUI((int) fileInfo.getFileSize(), fileInfo.getFileSize());
                 bufferedInputStream.close();
             } else {
                 JOptionPane.showMessageDialog(
@@ -157,10 +177,36 @@ public class UDPClient {
         return new String(sendPacket.getData()).substring(0, sendPacket.getLength());
     }
 
-    static void updateUI(File file) {
+    static void updateInfoUI(File file) {
         frame.fileNameLabel.setText("File name: " + file.getName());
+        frame.fileNameLabel.paintImmediately(frame.fileNameLabel.getVisibleRect());
         frame.filePathLabel.setText("File path: " + file.getPath());
+        frame.filePathLabel.paintImmediately(frame.filePathLabel.getVisibleRect());
         frame.fileSizeLabel.setText("File size: " + file.length());
+        frame.fileSizeLabel.paintImmediately(frame.fileSizeLabel.getVisibleRect());
+        frame.progressBar.setValue(40);
+        frame.progressBar.paintImmediately(frame.progressBar.getVisibleRect());
+
+    }
+
+    void updateProgressBarUI(int sendingSize, long fileSize) {
+        if (fileSize == 0) {
+            frame.progressBar.setValue(0);
+            frame.progressBar.paintImmediately(frame.progressBar.getVisibleRect());
+            frame.sendingInfo.setText("__/__ bytes");
+            frame.sendingInfo.paintImmediately(frame.sendingInfo.getVisibleRect());
+        } else {
+            frame.progressBar.setValue((int) ((sendingSize / fileSize)*100));
+            frame.progressBar.paintImmediately(frame.progressBar.getVisibleRect());
+            frame.sendingInfo.setText(
+                    (int) ((sendingSize / fileSize)*100)
+                            + "%" + "  |  "
+                            + sendingSize
+                            + " / " + fileSize + " Bytes"
+            );
+//            frame.sendingInfo.paintImmediately(frame.sendingInfo.getVisibleRect());
+        }
+
     }
 
     public void waitMillisecond(long millisecond) {
