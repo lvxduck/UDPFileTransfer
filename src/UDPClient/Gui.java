@@ -18,7 +18,7 @@ public class Gui extends JFrame {
     JLabel fileSizeLabel;
 
     public Gui() {
-        this.setTitle("TRUYỀN FILE UDP_CLIENT");
+        this.setTitle("Client - Truyền file bằng giao thức UDP");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setBounds(100, 100, 900, 600);
         this.setSize(560, 342);
@@ -48,8 +48,8 @@ public class Gui extends JFrame {
 
         progressBar = new JProgressBar();
         progressBar.setPreferredSize(new Dimension(100, 22));
-        progressBar.setValue(0);
         progressBar.setStringPainted(true);
+        progressBar.setValue(0);
         panel.add(progressBar);
 
         sendingInfo = new JLabel("__/__ bytes", JLabel.CENTER);

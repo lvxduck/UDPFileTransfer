@@ -13,27 +13,23 @@ import java.net.*;
 
 public class UDPServer {
     private static final int PIECES_OF_FILE_SIZE = 1024 * 32;
-    private static String defaultDir = "D:\\Bach Khoa\\CSNM\\FIles Demo\\Server\\";
     private DatagramSocket serverSocket;
     private final int port = 6677;
     static Gui frame;
 
     public static void main(String[] args) {
         final JFileChooser fileDialog = new JFileChooser();
+        final String defaultDir = "D:\\Bach Khoa\\CSNM\\FIles Demo\\Server";
         fileDialog.setCurrentDirectory(new File(defaultDir));
         fileDialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         frame = new Gui();
         frame.setVisible(true);
-        frame.defaultDir.setText("Default Directory: " + defaultDir);
-        frame.pickDefaultDirButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int returnVal = fileDialog.showOpenDialog(frame);
-                if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    File file = fileDialog.getSelectedFile();
-                    defaultDir = file.getPath();
-                    frame.defaultDir.setText("Default Directory: " + defaultDir);
-                }
+        frame.defaultDirTextField.setText(defaultDir);
+        frame.pickDefaultDirButton.addActionListener(e -> {
+            int returnVal = fileDialog.showOpenDialog(frame);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File file = fileDialog.getSelectedFile();
+                frame.defaultDirTextField.setText(file.getPath());
             }
         });
 
@@ -50,7 +46,12 @@ public class UDPServer {
             }
         } catch (SocketException e) {
             e.printStackTrace();
-        }
+            JOptionPane.showMessageDialog(
+                    null,
+                    e.getMessage(),
+                    "Ops",
+                    JOptionPane.ERROR_MESSAGE
+            ); }
     }
 
     public void receiveFile() {
@@ -81,25 +82,20 @@ public class UDPServer {
                 senResponse("YES", receivePacket.getPort());
 
                 // Cap nhat lai UI
-                updateFileInfoUI(fileInfo);
+                frame.updateFileInfoUI(fileInfo);
 
                 // Tao fileReceive và buffer de ghi file
                 System.out.println("Receiving file...");
-                File fileReceive = new File(defaultDir + fileInfo.getFilename());
+                File fileReceive = new File(frame.defaultDirTextField.getText() +"\\"+ fileInfo.getFilename());
                 BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileReceive));
 
-                frame.progressBar.setValue(0);
-                frame.receiveInfo.setText("");
+                frame.updateProgressBarUI(0,0);
                 // Lap qua tat ca cac mieng: Nhan -> ghi data
                 for (int i = 0; i < (fileInfo.getPiecesOfFile() - 1); i++) {
                     receivePacket = new DatagramPacket(receiveData, receiveData.length, inetAddress, port);
                     serverSocket.receive(receivePacket);
                     bos.write(receiveData, 0, PIECES_OF_FILE_SIZE);
-                    updateFileReceiveProgress(
-                            (int) ((i + 1) * (100.0 / fileInfo.getPiecesOfFile())),
-                            (long) (i + 1) * PIECES_OF_FILE_SIZE,
-                            fileInfo.getFileSize()
-                    );
+                    frame.updateProgressBarUI((i + 1) * PIECES_OF_FILE_SIZE, fileInfo.getFileSize());
                     System.out.println("Receiving file..." + i );
                 }
 
@@ -108,18 +104,20 @@ public class UDPServer {
                 serverSocket.receive(receivePacket);
                 bos.write(receiveData, 0, fileInfo.getLastByteLength());
                 bos.flush();
-                System.out.println("Done!");
                 bos.close();
-                updateFileReceiveProgress(
-                        100,
-                        fileInfo.getFileSize(),
-                        fileInfo.getFileSize()
-                );
+                frame.updateProgressBarUI((int) fileInfo.getFileSize(), fileInfo.getFileSize());
+                System.out.println("Done!");
             } else {
                 senResponse("NO", receivePacket.getPort());
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(
+                    null,
+                    e.getMessage(),
+                    "Ops",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
@@ -129,26 +127,6 @@ public class UDPServer {
                 InetAddress.getByName("localhost"),
                 port);
         serverSocket.send(responsePacket);
-    }
-
-    void updateFileReceiveProgress(int percentReceive, long receiveSize, long fileReceiveSize){
-        frame.progressBar.setValue(percentReceive);
-        frame.receiveInfo.setText(
-                percentReceive
-                        + "%" + "  |  "
-                        + receiveSize + "/"
-                        + fileReceiveSize + "Kb"
-        );
-    }
-
-    void updateFileInfoUI(FileInfo fileInfo) {
-        System.out.println("File name: " + fileInfo.getFilename());
-        System.out.println("File size: " + fileInfo.getFileSize());
-        System.out.println("Pieces of file: " + fileInfo.getPiecesOfFile());
-        System.out.println("Last bytes length: " + fileInfo.getLastByteLength());
-        frame.fileName.setText("File name: " + fileInfo.getFilename());
-        frame.fileSize.setText("File size: " + fileInfo.getFileSize());
-        frame.progressBar.setVisible(true);
     }
 
     int showDialog(String ipSend, String fileName) {
