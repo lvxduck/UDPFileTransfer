@@ -3,6 +3,7 @@ package UDPClient;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.io.File;
 
 public class Gui extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -46,9 +47,9 @@ public class Gui extends JFrame {
         panel.add(panelFileSelect);
 
         progressBar = new JProgressBar();
-//        progressBar.setBorder(new EmptyBorder(0, 4, 0, 4));
         progressBar.setPreferredSize(new Dimension(100, 22));
-        progressBar.setValue(100);
+        progressBar.setValue(0);
+        progressBar.setStringPainted(true);
         panel.add(progressBar);
 
         sendingInfo = new JLabel("__/__ bytes", JLabel.CENTER);
@@ -74,5 +75,30 @@ public class Gui extends JFrame {
         panel.add(fileSizeLabel);
 
         add(panel);
+    }
+
+    void updateInfoUI(File file) {
+        fileNameLabel.setText("File name: " + file.getName());
+        filePathLabel.setText("File path: " + file.getPath());
+        fileSizeLabel.setText("File size: " + file.length());
+        progressBar.setValue(0);
+        sendingInfo.setText("__/__ bytes");
+    }
+
+    void updateProgressBarUI(int sendingSize, long fileSize) {
+        if (fileSize == 0) {
+            progressBar.setValue(0);
+            sendingInfo.setText("__/__ bytes");
+        } else {
+            int percent = (int) ((sendingSize / (double) fileSize) * 100);
+            if (percent > 100) percent = 100;
+            progressBar.setValue(percent);
+            sendingInfo.setText(
+                    percent
+                            + "%" + "  |  "
+                            + sendingSize
+                            + " / " + fileSize + " Bytes"
+            );
+        }
     }
 }
