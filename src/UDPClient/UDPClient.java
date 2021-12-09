@@ -15,7 +15,7 @@ public class UDPClient {
     private final int serverPort = 6677;
     private final String serverHost = "localhost";
     static Gui frame;
-    static String defaultDir = "D:\\Bach Khoa\\CSNM\\FIles Demo\\Client\\hello.txt";
+    static String defaultDir = "E:\\Documents\\bach khoa\\CSNM\\fileDemo\\client\\kitten.png";
 
     public static void main(String[] args) {
         final JFileChooser fileDialog = new JFileChooser();
@@ -107,6 +107,15 @@ public class UDPClient {
                             frame.updateProgressBarUI((i + 1) * PIECES_OF_FILE_SIZE, fileInfo.getFileSize());
                             System.out.println("Sending file... " + i);
                             waitMillisecond(180);
+                        }
+                        String lastResponse = getServerResponse();
+                        if(lastResponse.equals("COMPLETE")){
+                            JOptionPane.showMessageDialog(
+                                    null,
+                                    "Gửi file thành công",
+                                    "Ops",
+                                    JOptionPane.ERROR_MESSAGE
+                            );
                         }
                         waitMillisecond(40);
                     } else {

@@ -19,7 +19,7 @@ public class UDPServer {
 
     public static void main(String[] args) {
         final JFileChooser fileDialog = new JFileChooser();
-        final String defaultDir = "D:\\Bach Khoa\\CSNM\\FIles Demo\\Server";
+        final String defaultDir = "E:\\Documents\\bach khoa\\CSNM\\fileDemo\\server";
         fileDialog.setCurrentDirectory(new File(defaultDir));
         fileDialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         frame = new Gui();
@@ -106,6 +106,13 @@ public class UDPServer {
                 bos.flush();
                 bos.close();
                 frame.updateProgressBarUI((int) fileInfo.getFileSize(), fileInfo.getFileSize());
+                senResponse("COMPLETE", receivePacket.getPort());
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Nhận file thành công",
+                        "Ops",
+                        JOptionPane.ERROR_MESSAGE
+                );
                 System.out.println("Done!");
             } else {
                 senResponse("NO", receivePacket.getPort());
@@ -132,7 +139,7 @@ public class UDPServer {
     int showDialog(String ipSend, String fileName) {
         return JOptionPane.showConfirmDialog(
                 null,
-                ipSend + " muốn gửi cho bạn file: " + fileName + "\nBạn có muốn nhận ko",
+                ipSend + " muốn gửi cho bạn file: " + fileName + "\nBạn có muốn nhận ko?",
                 "Warning",
                 JOptionPane.YES_NO_OPTION
         );
