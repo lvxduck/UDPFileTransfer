@@ -11,18 +11,19 @@ import javax.swing.*;
 
 public class UDPClient {
     private static final int PIECES_OF_FILE_SIZE = 1024 * 32;
-    private DatagramSocket clientSocket;
-    private final int serverPort = 6677;
-    private final String serverHost = "localhost";
+    static DatagramSocket clientSocket;
     static Gui frame;
     static String defaultDir = "E:\\Documents\\bach khoa\\CSNM\\fileDemo\\client\\kitten.png";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnknownHostException, SocketException {
         final JFileChooser fileDialog = new JFileChooser();
         fileDialog.setCurrentDirectory(new File(defaultDir));
+        clientSocket = new DatagramSocket(9999, InetAddress.getByName("192.168.1.3"));
         frame = new Gui();
         frame.setVisible(true);
         frame.filePathTextField.setText(defaultDir);
+        frame.serverHost.setText("192.168.1.15");
+        frame.serverPort.setText("99228");
         frame.showFileDialogButton.addActionListener(e -> {
             int returnVal = fileDialog.showOpenDialog(frame);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -38,11 +39,10 @@ public class UDPClient {
         frame.transferFileButton.addActionListener(e -> {
             if (!frame.filePathTextField.getText().isEmpty()) {
                 File file = new File(frame.filePathTextField.getText());
-                if(file.exists() && !file.isDirectory()) {
+                if (file.exists() && !file.isDirectory()) {
                     UDPClient udpClient = new UDPClient();
-                    udpClient.connectServer();
                     udpClient.sendFile(file);
-                }else{
+                } else {
                     JOptionPane.showMessageDialog(
                             null,
                             "File không tồn tại!",
@@ -60,14 +60,6 @@ public class UDPClient {
                 );
             }
         });
-    }
-
-    private void connectServer() {
-        try {
-            clientSocket = new DatagramSocket();
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
     }
 
     private void sendFile(File fileSend) {
@@ -101,7 +93,8 @@ public class UDPClient {
                         for (int i = 0; i < piecesOfFile; i++) {
                             DatagramPacket sendPacket = new DatagramPacket(
                                     fileBytes[i], PIECES_OF_FILE_SIZE,
-                                    InetAddress.getByName(serverHost), serverPort
+                                    InetAddress.getByName(frame.serverHost.getText()),
+                                    Integer.parseInt(frame.serverPort.getText())
                             );
                             clientSocket.send(sendPacket);
                             frame.updateProgressBarUI((i + 1) * PIECES_OF_FILE_SIZE, fileInfo.getFileSize());
@@ -109,7 +102,7 @@ public class UDPClient {
                             waitMillisecond(180);
                         }
                         String lastResponse = getServerResponse();
-                        if(lastResponse.equals("COMPLETE")){
+                        if (lastResponse.equals("COMPLETE")) {
                             JOptionPane.showMessageDialog(
                                     null,
                                     "Gửi file thành công",
@@ -126,7 +119,7 @@ public class UDPClient {
                                 JOptionPane.ERROR_MESSAGE
                         );
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     JOptionPane.showMessageDialog(
                             null,
                             e.getMessage(),
@@ -143,8 +136,9 @@ public class UDPClient {
         DatagramPacket sendPacket = new DatagramPacket(
                 new byte[1024],
                 1024,
-                InetAddress.getByName(serverHost),
-                serverPort
+                InetAddress.getByName(frame.serverHost.getText()),
+                Integer.parseInt(frame.serverPort.getText()
+                )
         );
         clientSocket.receive(sendPacket);
         return new String(sendPacket.getData()).substring(0, sendPacket.getLength());
@@ -157,11 +151,11 @@ public class UDPClient {
         DatagramPacket sendPacket = new DatagramPacket(
                 arrayOutputStream.toByteArray(),
                 arrayOutputStream.toByteArray().length,
-                InetAddress.getByName(serverHost),
-                serverPort
+                InetAddress.getByName(frame.serverHost.getText()),
+                Integer.parseInt(frame.serverPort.getText())
         );
         clientSocket.send(sendPacket);
-        System.out.println("Sending file...");
+        System.out.println("Sending file to " + InetAddress.getByName(frame.serverHost.getText()) + "...");
     }
 
     private byte[][] getFileBytes(File fileSend, int piecesOfFile) throws IOException {

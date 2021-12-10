@@ -9,6 +9,8 @@ public class Gui extends JFrame {
     private static final long serialVersionUID = 1L;
 
     JTextField filePathTextField;
+    JTextField serverPort;
+    JTextField serverHost;
     JButton showFileDialogButton;
     JButton transferFileButton;
     JProgressBar progressBar;
@@ -21,7 +23,7 @@ public class Gui extends JFrame {
         this.setTitle("Client - Truyền file bằng giao thức UDP");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setBounds(100, 100, 900, 600);
-        this.setSize(560, 342);
+        this.setSize(560, 382);
 
         JPanel panel = new JPanel();
         panel.setBorder(new EmptyBorder(32, 10, 32, 10));
@@ -33,6 +35,27 @@ public class Gui extends JFrame {
         headerLabel.setFont(new Font("Serif", Font.BOLD, 22));
         headerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         panel.add(headerLabel);
+
+        Panel panelServer = new Panel();
+        JLabel labelServer1 = new JLabel("Host", JLabel.CENTER);
+        labelServer1.setBorder(new EmptyBorder(8, 0, 0, 0));
+        labelServer1.setFont(new Font("Serif", Font.PLAIN, 16));
+        panelServer.add(labelServer1);
+        serverHost = new JTextField(12);
+        serverHost.setPreferredSize(new Dimension(60, 24));
+        panelServer.add(serverHost);
+        JLabel labelServer2 = new JLabel("Port", JLabel.CENTER);
+        labelServer2.setBorder(new EmptyBorder(8, 0, 0, 0));
+        labelServer2.setFont(new Font("Serif", Font.PLAIN, 16));
+        panelServer.add(labelServer2);
+        serverPort = new JTextField(5);
+        serverPort.setPreferredSize(new Dimension(60, 24));
+        panelServer.add(serverPort);
+        JLabel labelPadding = new JLabel(" ", JLabel.CENTER);
+        labelPadding.setBorder(new EmptyBorder(0, 260, 0, 0));
+        panelServer.add(labelPadding);
+        panel.add(panelServer);
+
 
         Panel panelFileSelect = new Panel();
         filePathTextField = new JTextField(32);

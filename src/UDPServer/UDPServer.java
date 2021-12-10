@@ -1,8 +1,6 @@
 package UDPServer;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -14,7 +12,8 @@ import java.net.*;
 public class UDPServer {
     private static final int PIECES_OF_FILE_SIZE = 1024 * 32;
     private DatagramSocket serverSocket;
-    private final int port = 6677;
+    private final int port = 9998;
+    private final String ip = "192.168.1.18";
     static Gui frame;
 
     public static void main(String[] args) {
@@ -39,12 +38,12 @@ public class UDPServer {
 
     private void openServer() {
         try {
-            serverSocket = new DatagramSocket(port);
+            serverSocket = new DatagramSocket(port, InetAddress.getByName(ip));
             System.out.println("Server is opened on port " + port);
             while (true) {
                 receiveFile();
             }
-        } catch (SocketException e) {
+        } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(
                     null,
@@ -79,7 +78,7 @@ public class UDPServer {
             // No: ko lam gi ca
             int dialogResult = showDialog(inetAddress.getHostAddress(), fileInfo.getFilename());
             if (dialogResult == JOptionPane.YES_OPTION) {
-                senResponse("YES", receivePacket.getPort());
+                senResponse("YES", receivePacket);
 
                 // Cap nhat lai UI
                 frame.updateFileInfoUI(fileInfo);
@@ -106,7 +105,7 @@ public class UDPServer {
                 bos.flush();
                 bos.close();
                 frame.updateProgressBarUI((int) fileInfo.getFileSize(), fileInfo.getFileSize());
-                senResponse("COMPLETE", receivePacket.getPort());
+                senResponse("COMPLETE", receivePacket);
                 JOptionPane.showMessageDialog(
                         null,
                         "Nhận file thành công",
@@ -115,7 +114,7 @@ public class UDPServer {
                 );
                 System.out.println("Done!");
             } else {
-                senResponse("NO", receivePacket.getPort());
+                senResponse("NO", receivePacket);
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -128,11 +127,11 @@ public class UDPServer {
         }
     }
 
-    void senResponse(String response, int port) throws IOException {
+    void senResponse(String response, DatagramPacket datagramPacket) throws IOException {
         DatagramPacket responsePacket = new DatagramPacket(response.getBytes(),
                 response.length(),
-                InetAddress.getByName("localhost"),
-                port);
+                datagramPacket.getAddress(),
+                datagramPacket.getPort());
         serverSocket.send(responsePacket);
     }
 
